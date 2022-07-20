@@ -101,6 +101,18 @@ RansacStats ransac_relpose(const std::vector<Point2D> &x1, const std::vector<Poi
     return stats;
 }
 
+RansacStats ransac_relplanarpose(const std::vector<Point2D> &x1, const std::vector<Point2D> &x2, const RansacOptions &opt,
+                                  CameraPose *best_model, std::vector<char> *best_inliers) {
+    best_model->q << 1.0, 0.0, 0.0, 0.0;
+    best_model->t.setZero();
+    RelativePlanarPoseEstimator estimator(opt, x1, x2);
+    RansacStats stats = ransac<RelativePlanarPoseEstimator>(estimator, opt, best_model);
+
+    get_inliers(*best_model, x1, x2, opt.max_epipolar_error * opt.max_epipolar_error, best_inliers);
+
+    return stats;
+}
+
 RansacStats ransac_fundamental(const std::vector<Point2D> &x1, const std::vector<Point2D> &x2, const RansacOptions &opt,
                                Eigen::Matrix3d *best_model, std::vector<char> *best_inliers) {
 
