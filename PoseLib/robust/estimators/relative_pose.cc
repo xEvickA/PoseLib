@@ -33,7 +33,7 @@
 #include "PoseLib/solvers/gen_relpose_5p1pt.h"
 #include "PoseLib/solvers/relpose_5pt.h"
 #include "PoseLib/solvers/relpose_7pt.h"
-#include <PoseLib/solvers/relpose_upright_planar_2pt.h>
+#include <PoseLib/solvers/relpose_4pt_planar.h>
 
 namespace poselib {
 
@@ -81,7 +81,7 @@ void RelativePlanarPoseEstimator::generate_models(std::vector<CameraPose> *model
         x1s[k] = x1[sample[k]].homogeneous().normalized();
         x2s[k] = x2[sample[k]].homogeneous().normalized();
     }
-    relpose_upright_planar_2pt(x1s, x2s, models);
+    relpose_4pt_planar(x1s, x2s, models);
 }
 
 double RelativePlanarPoseEstimator::score_model(const CameraPose &pose, size_t *inlier_count) const {
@@ -89,6 +89,9 @@ double RelativePlanarPoseEstimator::score_model(const CameraPose &pose, size_t *
 }
 
 void RelativePlanarPoseEstimator::refine_model(CameraPose *pose) const {
+    printf("Not doing this bruv!");
+    return;
+        
     BundleOptions bundle_opt;
     bundle_opt.loss_type = BundleOptions::LossType::TRUNCATED;
     bundle_opt.loss_scale = opt.max_epipolar_error;

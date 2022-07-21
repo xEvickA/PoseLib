@@ -80,7 +80,7 @@ class RelativePlanarPoseEstimator {
     double score_model(const CameraPose &pose, size_t *inlier_count) const;
     void refine_model(CameraPose *pose) const;
 
-    const size_t sample_sz = 2;
+    const size_t sample_sz = 4;
     const size_t num_data;
 
   private:

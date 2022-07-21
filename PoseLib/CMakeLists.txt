@@ -19,6 +19,7 @@ set(SOURCES
     solvers/relpose_upright_3pt.cc
     solvers/relpose_upright_planar_2pt.cc
     solvers/relpose_upright_planar_3pt.cc
+    solvers/relpose_4pt_planar.cc
     solvers/relpose_8pt.cc
     solvers/relpose_5pt.cc
     solvers/relpose_7pt.cc
@@ -63,6 +64,7 @@ set(HEADERS_PUBLIC
     solvers/relpose_upright_3pt.h
     solvers/relpose_upright_planar_2pt.h
     solvers/relpose_upright_planar_3pt.h
+    solvers/relpose_4pt_planar.h
     solvers/relpose_8pt.h
     solvers/relpose_5pt.h
     solvers/relpose_7pt.h
