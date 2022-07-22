@@ -56,6 +56,10 @@ RansacStats ransac_relpose(const std::vector<Point2D> &x1, const std::vector<Poi
 RansacStats ransac_relplanarpose(const std::vector<Point2D> &x1, const std::vector<Point2D> &x2, const RansacOptions &opt,
                                  CameraPose *best_model, std::vector<char> *best_inliers);
 
+RansacStats ransac_relplanarposebrute(const std::vector<Point2D> &x1, const std::vector<Point2D> &x2,
+                                      const RansacOptions &opt, CameraPose *best_model,
+                                      std::vector<char> *best_inliers);
+
 RansacStats ransac_fundamental(const std::vector<Point2D> &x1, const std::vector<Point2D> &x2, const RansacOptions &opt,
                                Eigen::Matrix3d *best_model, std::vector<char> *best_inliers);
 

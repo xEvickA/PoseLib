@@ -43,6 +43,9 @@ int relpose_5pt(const std::vector<Eigen::Vector3d> &x1, const std::vector<Eigen:
 int relpose_5pt(const std::vector<Eigen::Vector3d> &x1, const std::vector<Eigen::Vector3d> &x2,
                 std::vector<CameraPose> *output);
 
+int relpose_5pt_planar_brute(const std::vector<Eigen::Vector3d> &x1, const std::vector<Eigen::Vector3d> &x2,
+                             std::vector<CameraPose> *output);
+
 }; // namespace poselib
 
 #endif

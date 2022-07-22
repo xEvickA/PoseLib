@@ -68,6 +68,12 @@ void motion_from_essential(const Eigen::Matrix3d &E, const Eigen::Vector3d &x1, 
                            CameraPoseVector *relative_poses);
 
 /*
+Same as above, but discards the poses if they are not approx. planar
+*/
+void motion_from_essential_planar_brute(const Eigen::Matrix3d &E, const Eigen::Vector3d &x1, const Eigen::Vector3d &x2,
+                                        CameraPoseVector *relative_poses);
+
+/*
 Factorizes the essential matrix into the relative poses. Assumes that the essential matrix corresponds to
 planar motion, i.e. that we have
       E = [0   e01  0;

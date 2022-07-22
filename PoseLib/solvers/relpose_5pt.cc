@@ -408,4 +408,18 @@ int relpose_5pt(const std::vector<Eigen::Vector3d> &x1, const std::vector<Eigen:
     return output->size();
 }
 
+int relpose_5pt_planar_brute(const std::vector<Eigen::Vector3d> &x1, const std::vector<Eigen::Vector3d> &x2,
+                std::vector<CameraPose> *output) {
+    std::vector<Eigen::Matrix3d> essential_matrices;
+    int n_sols = relpose_5pt(x1, x2, &essential_matrices);
+
+    output->clear();
+    output->reserve(n_sols);
+    for (int i = 0; i < n_sols; ++i) {
+        motion_from_essential_planar_brute(essential_matrices[i], x1[0], x2[0], output);
+    }
+
+    return output->size();
+}
+
 } // namespace poselib

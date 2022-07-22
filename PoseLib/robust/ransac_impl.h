@@ -31,6 +31,7 @@
 
 #include "PoseLib/types.h"
 
+#include <chrono>
 #include <vector>
 
 namespace poselib {
@@ -55,8 +56,10 @@ RansacStats ransac(Solver &estimator, const RansacOptions &opt, Model *best_mode
     size_t inlier_count = 0;
     std::vector<Model> models;
     size_t dynamic_max_iter = opt.max_iterations;
-    for (stats.iterations = 0; stats.iterations < opt.max_iterations; stats.iterations++) {
+    std::chrono::steady_clock::time_point start_minimal = std::chrono::steady_clock::now();
+    std::chrono::steady_clock::time_point start_total = std::chrono::steady_clock::now();
 
+    for (stats.iterations = 0; stats.iterations < opt.max_iterations; stats.iterations++) {
         if (stats.iterations > opt.min_iterations && stats.iterations > dynamic_max_iter) {
             break;
         }
@@ -91,6 +94,15 @@ RansacStats ransac(Solver &estimator, const RansacOptions &opt, Model *best_mode
         if (best_model_ind == -1)
             continue;
 
+        std::chrono::steady_clock::time_point end_minimal = std::chrono::steady_clock::now();
+        printf("Found a new best model with %i inliers and %f score using minimal solver in %i us of %i iterations \n",
+               stats.num_inliers, stats.model_score,
+               std::chrono::duration_cast<std::chrono::microseconds>(end_minimal - start_minimal).count(),
+               stats.iterations);
+
+
+        std::chrono::steady_clock::time_point start_refinement = std::chrono::steady_clock::now();
+
         // Refinement
         Model refined_model = models[best_model_ind];
         estimator.refine_model(&refined_model);
@@ -101,6 +113,15 @@ RansacStats ransac(Solver &estimator, const RansacOptions &opt, Model *best_mode
             stats.num_inliers = inlier_count;
             *best_model = refined_model;
         }
+
+
+        std::chrono::steady_clock::time_point end_refinement = std::chrono::steady_clock::now();
+        printf("Found a new best model with %i inliers and %f score using refinement in %i us \n",
+               stats.num_inliers, stats.model_score,
+               std::chrono::duration_cast<std::chrono::microseconds>(end_refinement - start_refinement).count());
+
+        start_minimal = std::chrono::steady_clock::now();
+
 
         // update number of iterations
         stats.inlier_ratio = static_cast<double>(stats.num_inliers) / static_cast<double>(estimator.num_data);
@@ -125,6 +146,12 @@ RansacStats ransac(Solver &estimator, const RansacOptions &opt, Model *best_mode
         *best_model = refined_model;
         stats.num_inliers = inlier_count;
     }
+
+    std::chrono::steady_clock::time_point end_total = std::chrono::steady_clock::now();
+    printf("Finished with best model with %i inliers and %f score in %i us of %i iterations \n",
+           stats.num_inliers, stats.model_score,
+           std::chrono::duration_cast<std::chrono::microseconds>(end_total - start_total).count(),
+           stats.iterations);
 
     return stats;
 }
