@@ -79,6 +79,13 @@ RansacStats estimate_relative_planar_pose(const std::vector<Point2D> &points2D_1
                                           const BundleOptions &bundle_opt, CameraPose *relative_pose,
                                           std::vector<char> *inliers);
 
+// Estimates relative planar pose from 6 points using LO-RANSAC followed by non-linear refinement w/o planar assumption
+// Threshold for Sampson error is set by RansacOptions.max_epipolar_error
+RansacStats estimate_relative_planar_pose_6pt(const std::vector<Point2D> &points2D_1, const std::vector<Point2D> &points2D_2,
+                                          const Camera &camera1, const Camera &camera2, const RansacOptions &ransac_opt,
+                                          const BundleOptions &bundle_opt, CameraPose *relative_pose,
+                                          std::vector<char> *inliers);                                          
+
 // Estimates relative planar pose from 5 points and discarding non planar poses using LO-RANSAC followed by non-linear refinement w/o planar assumption
 // Threshold for Sampson error is set by RansacOptions.max_epipolar_error
 RansacStats estimate_relative_planar_pose_brute(const std::vector<Point2D> &points2D_1,
