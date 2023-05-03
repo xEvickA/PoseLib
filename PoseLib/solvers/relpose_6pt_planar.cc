@@ -3,6 +3,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <PoseLib/misc/essential.h>
+#include <iostream>
 
 #define RELERROR      1.0e-12   /* smallest relative error we want */
 //#define MAXPOW        0        /* max power of 10 we wish to search to */
@@ -681,7 +682,7 @@ template <typename Derived> void charpoly_danilevsky_piv(Eigen::MatrixBase<Deriv
 }
 
 void fast_eigenvector_solver(double *eigv, int neig, Eigen::Matrix<double, 9, 9> &AM,
-                             Eigen::Matrix<std::complex<double>, 2, 9> &sols) {
+                             Eigen::Matrix<std::complex<double>, 3, 9> &sols) {
     static const int ind[] = {2, 4, 6, 9, 12, 15, 18, 22, 25, 29};
     // Truncated action matrix containing non-trivial rows
     Eigen::Matrix<double, 10, 9> AMs;
@@ -725,7 +726,7 @@ void fast_eigenvector_solver(double *eigv, int neig, Eigen::Matrix<double, 9, 9>
     }
 }
 
-int solver_6pt_planar(const Eigen::VectorXd &data, Eigen::Matrix<std::complex<double>, 2, 9> &sols)
+int solver_6pt_planar(const Eigen::VectorXd &data, Eigen::Matrix<std::complex<double>, 3, 9> &sols)
 {
 	// Compute coefficients
     const double* d = data.data();
@@ -820,11 +821,11 @@ namespace poselib {
         epipolar_constraints.col(i) << x1[i](0) * x2[i], x1[i](1) * x2[i], x1[i](2) * x2[i];
     }
     Eigen::Matrix<double, 9, 9> Q = epipolar_constraints.fullPivHouseholderQr().matrixQ();
-    Eigen::Matrix<double, 9, 3> N = Q.rightCols(3);
+    Eigen::Matrix<double, 9, 4> N = Q.rightCols(4);
 
     Eigen::VectorXd B(Eigen::Map<Eigen::VectorXd>(N.data(), N.cols() * N.rows()));
 
-    Eigen::Matrix<std::complex<double>, 2, 9> sols;
+    Eigen::Matrix<std::complex<double>, 3, 9> sols;
     int n_sols = solver_6pt_planar(B, sols);
     
     fundamental_matrices->clear();
@@ -833,7 +834,8 @@ namespace poselib {
     for (int i = 0; i < n_sols; i++) {
         Eigen::Vector<double, 9> fundamental_matrix_vector = sols(0, i).real() * N.col(0) + sols(1, i).real() * N.col(1) + sols(2, i).real() * N.col(2) + N.col(3);
 		fundamental_matrix_vector.normalize();
-        Eigen::Matrix3d fundamental_matrix = Eigen::Map<Eigen::Matrix3d>(fundamental_matrix_vector.data());
+		//std::cout << epipolar_constraints.transpose() * fundamental_matrix_vector << std::endl;
+		Eigen::Matrix3d fundamental_matrix = Eigen::Map<Eigen::Matrix3d>(fundamental_matrix_vector.data());        
         fundamental_matrices->push_back(fundamental_matrix);
     }
 
