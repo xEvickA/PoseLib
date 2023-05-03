@@ -812,7 +812,7 @@ int solver_6pt_planar(const Eigen::VectorXd &data, Eigen::Matrix<std::complex<do
 
 namespace poselib {
     int relpose_6pt_planar(const std::vector<Eigen::Vector3d> &x1, const std::vector<Eigen::Vector3d> &x2,
-                       std::vector<Eigen::Matrix3d> *essential_matrices) {
+                       std::vector<Eigen::Matrix3d> *fundamental_matrices) {
 
     // Compute nullspace to epipolar constraints
     Eigen::Matrix<double, 9, 6> epipolar_constraints;
@@ -827,31 +827,32 @@ namespace poselib {
     Eigen::Matrix<std::complex<double>, 2, 9> sols;
     int n_sols = solver_6pt_planar(B, sols);
     
-    essential_matrices->clear();
-    essential_matrices->reserve(n_sols);
+    fundamental_matrices->clear();
+    fundamental_matrices->reserve(n_sols);
 
     for (int i = 0; i < n_sols; i++) {
-        Eigen::Vector<double, 9> essential_matrix_vector = sols(0, i).real() * N.col(0) + sols(1, i).real() * N.col(1) + sols(2, i).real() * N.col(2) + sols(3, i).real() * N.col(3) + N.col(4);
-        essential_matrix_vector.normalize();
-        Eigen::Matrix3d essential_matrix = Eigen::Map<Eigen::Matrix3d>(essential_matrix_vector.data());
-        essential_matrices->push_back(essential_matrix);
+        Eigen::Vector<double, 9> fundamental_matrix_vector = sols(0, i).real() * N.col(0) + sols(1, i).real() * N.col(1) + sols(2, i).real() * N.col(2) + N.col(3);
+		fundamental_matrix_vector.normalize();
+        Eigen::Matrix3d fundamental_matrix = Eigen::Map<Eigen::Matrix3d>(fundamental_matrix_vector.data());
+        fundamental_matrices->push_back(fundamental_matrix);
     }
 
     return n_sols;
 }
 
-int relpose_6pt_planar(const std::vector<Eigen::Vector3d> &x1, const std::vector<Eigen::Vector3d> &x2,
-                       std::vector<CameraPose> *output) {
-    std::vector<Eigen::Matrix3d> essential_matrices;
-    int n_sols = relpose_6pt_planar(x1, x2, &essential_matrices);
+// int relpose_6pt_planar(const std::vector<Eigen::Vector3d> &x1, const std::vector<Eigen::Vector3d> &x2,
+//                        std::vector<CameraPose> *output) {
+//     std::vector<Eigen::Matrix3d> fundamental_matrices;
+	
+//     int n_sols = relpose_6pt_planar(x1, x2, &fundamental_matrices);
 
-    // output->clear();
-    // output->reserve(n_sols);
-    // for (int i = 0; i < n_sols; ++i) {
-    //     motion_from_essential(essential_matrices[i], x1[0], x2[0], output);
-    // }
+//     output->clear();
+//     output->reserve(n_sols);
+//     // for (int i = 0; i < n_sols; ++i) {
+//     //     motion_from_essential(essential_matrices[i], x1[0], x2[0], output);
+//     // }
 
-    return output->size();
-}
+//     return output->size();
+// }
 
 } // namespace poselib

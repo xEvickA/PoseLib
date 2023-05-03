@@ -322,8 +322,11 @@ RansacStats estimate_relative_planar_pose_6pt(const std::vector<Point2D> &points
         // BundleOptions scaled_bundle_opt = bundle_opt;
         // scaled_bundle_opt.loss_scale = bundle_opt.loss_scale * 0.5 * (1.0 / camera1.focal() + 1.0 / camera2.focal());
 
-        refine_relpose(x1_inliers, x2_inliers, F, bundle_opt_scaled);
+        refine_fundamental(x1_inliers, x2_inliers, F, bundle_opt_scaled);
     }
+
+    *F = T2.transpose() * (*F) * T1;
+    *F /= F->norm();
 
     return stats;
 }

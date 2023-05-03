@@ -12,8 +12,8 @@ namespace poselib {
 int relpose_6pt_planar(const std::vector<Eigen::Vector3d> &x1, const std::vector<Eigen::Vector3d> &x2,
                        std::vector<Eigen::Matrix3d> *output);
     
-int relpose_6pt_planar(const std::vector<Eigen::Vector3d> &x1, const std::vector<Eigen::Vector3d> &x2,
-                       Eigen::Matrix<std::complex<double>, 4, 30> &sols);
+// int relpose_6pt_planar(const std::vector<Eigen::Vector3d> &x1, const std::vector<Eigen::Vector3d> &x2,
+//                        Eigen::Matrix<std::complex<double>, 4, 30> &sols);
 
 }; // namespace poselib
 
