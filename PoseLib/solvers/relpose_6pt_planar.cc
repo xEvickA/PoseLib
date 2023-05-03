@@ -845,11 +845,11 @@ int relpose_6pt_planar(const std::vector<Eigen::Vector3d> &x1, const std::vector
     std::vector<Eigen::Matrix3d> essential_matrices;
     int n_sols = relpose_6pt_planar(x1, x2, &essential_matrices);
 
-    output->clear();
-    output->reserve(n_sols);
-    for (int i = 0; i < n_sols; ++i) {
-        motion_from_essential(essential_matrices[i], x1[0], x2[0], output);
-    }
+    // output->clear();
+    // output->reserve(n_sols);
+    // for (int i = 0; i < n_sols; ++i) {
+    //     motion_from_essential(essential_matrices[i], x1[0], x2[0], output);
+    // }
 
     return output->size();
 }

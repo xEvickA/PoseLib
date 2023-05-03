@@ -87,6 +87,10 @@ BundleStats refine_relpose(const std::vector<Point2D> &x1, const std::vector<Poi
                            const BundleOptions &opt = BundleOptions(),
                            const std::vector<double> &weights = std::vector<double>());
 
+BundleStats refine_relpose(const std::vector<Point2D> &x1, const std::vector<Point2D> &x2, Eigen::Matrix3d *F,
+                           const BundleOptions &opt = BundleOptions(),
+                           const std::vector<double> &weights = std::vector<double>());                           
+
 // Fundamental matrix refinement. Minimizes Sampson error error.
 BundleStats refine_fundamental(const std::vector<Point2D> &x1, const std::vector<Point2D> &x2, Eigen::Matrix3d *F,
                                const BundleOptions &opt = BundleOptions(),

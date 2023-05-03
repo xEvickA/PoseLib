@@ -491,15 +491,15 @@ std::pair<CameraPose, py::dict> estimate_relative_planar_pose_wrapper(const std:
     return std::make_pair(pose, output_dict);
 }
 
-std::pair<CameraPose, py::dict> estimate_relative_planar_pose_6pt_wrapper(const std::vector<Eigen::Vector2d> points2D_1,
+std::pair<Eigen::Matrix3d, py::dict> estimate_relative_planar_pose_6pt_wrapper(const std::vector<Eigen::Vector2d> points2D_1,
                                                                       const std::vector<Eigen::Vector2d> points2D_2,
-                                                                      const py::dict &camera1_dict,
-                                                                      const py::dict &camera2_dict,
+                                                                    //   const py::dict &camera1_dict,
+                                                                    //   const py::dict &camera2_dict,
                                                                       const py::dict &ransac_opt_dict,
                                                                       const py::dict &bundle_opt_dict) {
 
-    Camera camera1 = camera_from_dict(camera1_dict);
-    Camera camera2 = camera_from_dict(camera2_dict);
+    // Camera camera1 = camera_from_dict(camera1_dict);
+    // Camera camera2 = camera_from_dict(camera2_dict);
 
     RansacOptions ransac_opt;
     update_ransac_options(ransac_opt_dict, ransac_opt);
@@ -508,16 +508,17 @@ std::pair<CameraPose, py::dict> estimate_relative_planar_pose_6pt_wrapper(const 
     bundle_opt.loss_scale = 0.5 * ransac_opt.max_epipolar_error;
     update_bundle_options(bundle_opt_dict, bundle_opt);
 
-    CameraPose pose;
+    Eigen::Matrix3d F;
+    // CameraPose pose;
     std::vector<char> inlier_mask;
 
     RansacStats stats =
-        estimate_relative_planar_pose_6pt(points2D_1, points2D_2, camera1, camera2, ransac_opt, bundle_opt, &pose, &inlier_mask);
+        estimate_relative_planar_pose_6pt(points2D_1, points2D_2, ransac_opt, bundle_opt, &F, &inlier_mask);
 
     py::dict output_dict;
     write_to_dict(stats, output_dict);
     output_dict["inliers"] = convert_inlier_vector(inlier_mask);
-    return std::make_pair(pose, output_dict);
+    return std::make_pair(F, output_dict);
 }
 
 std::pair<CameraPose, py::dict> estimate_relative_planar_pose_brute_wrapper(const std::vector<Eigen::Vector2d> points2D_1,
@@ -899,8 +900,8 @@ PYBIND11_MODULE(poselib, m) {
           py::arg("points2D_2"), py::arg("camera1_dict"), py::arg("camera2_dict"), py::arg("ransac_opt") = py::dict(),
           py::arg("bundle_opt") = py::dict(), "Relative pose estimation with non-linear refinement.");
     m.def("estimate_relative_planar_pose_6pt", &poselib::estimate_relative_planar_pose_6pt_wrapper, py::arg("points2D_1"),
-          py::arg("points2D_2"), py::arg("camera1_dict"), py::arg("camera2_dict"), py::arg("ransac_opt") = py::dict(),
-          py::arg("bundle_opt") = py::dict(), "Relative pose estimation with non-linear refinement and 6 point algorythm");
+          py::arg("points2D_2"), py::arg("ransac_opt") = py::dict(), py::arg("bundle_opt") = py::dict(), 
+          "Relative pose estimation with non-linear refinement and 6 point algorythm");
     m.def("estimate_relative_planar_pose_brute", &poselib::estimate_relative_planar_pose_brute_wrapper, py::arg("points2D_1"),
           py::arg("points2D_2"), py::arg("camera1_dict"), py::arg("camera2_dict"), py::arg("ransac_opt") = py::dict(),
           py::arg("bundle_opt") = py::dict(), "Relative pose estimation with non-linear refinement.");

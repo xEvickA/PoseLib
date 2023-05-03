@@ -105,9 +105,9 @@ class RelativePlanarPoseEstimator6pt {
         sample.resize(sample_sz);
     }
 
-    void generate_models(std::vector<CameraPose> *models);
-    double score_model(const CameraPose &pose, size_t *inlier_count) const;
-    void refine_model(CameraPose *pose) const;
+    void generate_models(std::vector<Eigen::Matrix3d> *models);
+    double score_model(const Eigen::Matrix3d &F, size_t *inlier_count) const;
+    void refine_model(Eigen::Matrix3d *F) const;
 
     const size_t sample_sz = 6;
     const size_t num_data;

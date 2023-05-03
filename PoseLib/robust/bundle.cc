@@ -316,6 +316,45 @@ BundleStats refine_relpose(const std::vector<Point2D> &x1, const std::vector<Poi
     }
 }
 
+template <typename WeightType, typename LossFunction>
+BundleStats refine_relpose(const std::vector<Point2D> &x1, const std::vector<Point2D> &x2, Eigen::Matrix3d *F,
+                           const BundleOptions &opt, const WeightType &weights) {
+    FactorizedFundamentalMatrix factorized_fund_mat(*F);
+    LossFunction loss_fn(opt.loss_scale);
+    IterationCallback callback = setup_callback(opt, loss_fn);
+    FundamentalJacobianAccumulator<LossFunction, WeightType> accum(x1, x2, loss_fn, weights);
+    BundleStats stats = lm_impl<decltype(accum)>(accum, &factorized_fund_mat, opt, callback);
+    *F = factorized_fund_mat.F();
+    return stats;
+    // LossFunction loss_fn(opt.loss_scale);
+    // IterationCallback callback = setup_callback(opt, loss_fn);
+    // RelativePoseJacobianAccumulator<LossFunction, WeightType> accum(x1, x2, loss_fn, weights);
+    // return lm_impl<decltype(accum)>(accum, F, opt, callback);
+}
+
+template <typename WeightType>
+BundleStats refine_relpose(const std::vector<Point2D> &x1, const std::vector<Point2D> &x2, Eigen::Matrix3d *F,
+                           const BundleOptions &opt, const WeightType &weights) {
+    switch (opt.loss_type) {
+#define SWITCH_LOSS_FUNCTION_CASE(LossFunction)                                                                        \
+    return refine_relpose<WeightType, LossFunction>(x1, x2, F, opt, weights);
+        SWITCH_LOSS_FUNCTIONS
+    default:
+        return BundleStats();
+    }
+#undef SWITCH_LOSS_FUNCTION_CASE
+}
+
+// Entry point for essential matrix refinement
+BundleStats refine_relpose(const std::vector<Point2D> &x1, const std::vector<Point2D> &x2, Eigen::Matrix3d *F,
+                           const BundleOptions &opt, const std::vector<double> &weights) {
+    if (weights.size() == x1.size()) {
+        return refine_relpose<std::vector<double>>(x1, x2, F, opt, weights);
+    } else {
+        return refine_relpose<UniformWeightVector>(x1, x2, F, opt, UniformWeightVector());
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Uncalibrated relative pose (fundamental matrix) refinement
 

@@ -275,23 +275,34 @@ RansacStats estimate_relative_planar_pose(const std::vector<Point2D> &points2D_1
 }
 
 RansacStats estimate_relative_planar_pose_6pt(const std::vector<Point2D> &points2D_1, const std::vector<Point2D> &points2D_2,
-                                          const Camera &camera1, const Camera &camera2, const RansacOptions &ransac_opt,
-                                          const BundleOptions &bundle_opt, CameraPose *pose, std::vector<char> *inliers) {
+                                          const RansacOptions &ransac_opt, const BundleOptions &bundle_opt, Eigen::Matrix3d *F, 
+                                          std::vector<char> *inliers) {
 
     const size_t num_pts = points2D_1.size();
 
-    std::vector<Point2D> x1_calib(num_pts);
-    std::vector<Point2D> x2_calib(num_pts);
-    for (size_t k = 0; k < num_pts; ++k) {
-        camera1.unproject(points2D_1[k], &x1_calib[k]);
-        camera2.unproject(points2D_2[k], &x2_calib[k]);
-    }
+    Eigen::Matrix3d T1, T2;
+    std::vector<Point2D> x1_norm = points2D_1;
+    std::vector<Point2D> x2_norm = points2D_2;
 
+    double scale = normalize_points(x1_norm, x2_norm, T1, T2, true, true, true);
     RansacOptions ransac_opt_scaled = ransac_opt;
-    ransac_opt_scaled.max_epipolar_error =
-        ransac_opt.max_epipolar_error * 0.5 * (1.0 / camera1.focal() + 1.0 / camera2.focal());
+    ransac_opt_scaled.max_epipolar_error /= scale;
+    BundleOptions bundle_opt_scaled = bundle_opt;
+    bundle_opt_scaled.loss_scale /= scale;
 
-    RansacStats stats = ransac_relplanarpose6pt(x1_calib, x2_calib, ransac_opt_scaled, pose, inliers);
+
+    // std::vector<Point2D> x1_calib(num_pts);
+    // std::vector<Point2D> x2_calib(num_pts);
+    // for (size_t k = 0; k < num_pts; ++k) {
+    //     camera1.unproject(points2D_1[k], &x1_calib[k]);
+    //     camera2.unproject(points2D_2[k], &x2_calib[k]);
+    // }
+
+    // RansacOptions ransac_opt_scaled = ransac_opt;
+    // ransac_opt_scaled.max_epipolar_error =
+    //     ransac_opt.max_epipolar_error * 0.5 * (1.0 / camera1.focal() + 1.0 / camera2.focal());
+
+    RansacStats stats = ransac_relplanarpose6pt(x1_norm, x2_norm, ransac_opt_scaled, F, inliers);
 
     if (stats.num_inliers > 7) {
         // Collect inlier for additional bundle adjustment
@@ -304,14 +315,14 @@ RansacStats estimate_relative_planar_pose_6pt(const std::vector<Point2D> &points
         for (size_t k = 0; k < num_pts; ++k) {
             if (!(*inliers)[k])
                 continue;
-            x1_inliers.push_back(x1_calib[k]);
-            x2_inliers.push_back(x2_calib[k]);
+            x1_inliers.push_back(x1_norm[k]);
+            x2_inliers.push_back(x2_norm[k]);
         }
 
-        BundleOptions scaled_bundle_opt = bundle_opt;
-        scaled_bundle_opt.loss_scale = bundle_opt.loss_scale * 0.5 * (1.0 / camera1.focal() + 1.0 / camera2.focal());
+        // BundleOptions scaled_bundle_opt = bundle_opt;
+        // scaled_bundle_opt.loss_scale = bundle_opt.loss_scale * 0.5 * (1.0 / camera1.focal() + 1.0 / camera2.focal());
 
-        refine_relpose(x1_inliers, x2_inliers, pose, scaled_bundle_opt);
+        refine_relpose(x1_inliers, x2_inliers, F, bundle_opt_scaled);
     }
 
     return stats;

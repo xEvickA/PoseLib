@@ -114,9 +114,10 @@ RansacStats ransac_relplanarpose(const std::vector<Point2D> &x1, const std::vect
 }
 
 RansacStats ransac_relplanarpose6pt(const std::vector<Point2D> &x1, const std::vector<Point2D> &x2, const RansacOptions &opt,
-                                  CameraPose *best_model, std::vector<char> *best_inliers) {
-    best_model->q << 1.0, 0.0, 0.0, 0.0;
-    best_model->t.setZero();
+                                  Eigen::Matrix3d *best_model, std::vector<char> *best_inliers) {
+    best_model->setIdentity();
+    // best_model->q << 1.0, 0.0, 0.0, 0.0;
+    // best_model->t.setZero();
     RelativePlanarPoseEstimator6pt estimator(opt, x1, x2);
     RansacStats stats = ransac<RelativePlanarPoseEstimator6pt>(estimator, opt, best_model);
 

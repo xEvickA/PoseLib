@@ -116,7 +116,7 @@ void RelativePlanarPoseEstimator::refine_model(CameraPose *pose) const {
     refine_relpose(x1_inlier, x2_inlier, pose, bundle_opt);
 }
 
-void RelativePlanarPoseEstimator6pt::generate_models(std::vector<CameraPose> *models) {
+void RelativePlanarPoseEstimator6pt::generate_models(std::vector<Eigen::Matrix3d> *models) {
     sampler.generate_sample(&sample);
     for (size_t k = 0; k < sample_sz; ++k) {
         x1s[k] = x1[sample[k]].homogeneous().normalized();
@@ -125,34 +125,17 @@ void RelativePlanarPoseEstimator6pt::generate_models(std::vector<CameraPose> *mo
     relpose_6pt_planar(x1s, x2s, models);
 }
 
-double RelativePlanarPoseEstimator6pt::score_model(const CameraPose &pose, size_t *inlier_count) const {
-    return compute_sampson_msac_score(pose, x1, x2, opt.max_epipolar_error * opt.max_epipolar_error, inlier_count);
+double RelativePlanarPoseEstimator6pt::score_model(const Eigen::Matrix3d &F, size_t *inlier_count) const {
+    return compute_sampson_msac_score(F, x1, x2, opt.max_epipolar_error * opt.max_epipolar_error, inlier_count);
 }
 
-void RelativePlanarPoseEstimator6pt::refine_model(CameraPose *pose) const {
+void RelativePlanarPoseEstimator6pt::refine_model(Eigen::Matrix3d *F) const {
     BundleOptions bundle_opt;
     bundle_opt.loss_type = BundleOptions::LossType::TRUNCATED;
     bundle_opt.loss_scale = opt.max_epipolar_error;
     bundle_opt.max_iterations = 25;
 
-    // Find approximate inliers and bundle over these with a truncated loss
-    std::vector<char> inliers;
-    int num_inl = get_inliers(*pose, x1, x2, 3 * (opt.max_epipolar_error * opt.max_epipolar_error), &inliers);
-    std::vector<Eigen::Vector2d> x1_inlier, x2_inlier;
-    x1_inlier.reserve(num_inl);
-    x2_inlier.reserve(num_inl);
-
-    if (num_inl <= 3) {
-        return;
-    }
-
-    for (size_t pt_k = 0; pt_k < x1.size(); ++pt_k) {
-        if (inliers[pt_k]) {
-            x1_inlier.push_back(x1[pt_k]);
-            x2_inlier.push_back(x2[pt_k]);
-        }
-    }
-    refine_relpose(x1_inlier, x2_inlier, pose, bundle_opt);
+    refine_relpose(x1, x2, F, bundle_opt);
 }
 
 void RelativePlanarPoseBruteEstimator::generate_models(std::vector<CameraPose> *models) {
