@@ -304,7 +304,7 @@ RansacStats estimate_relative_planar_pose_6pt(const std::vector<Point2D> &points
 
     RansacStats stats = ransac_relplanarpose6pt(x1_norm, x2_norm, ransac_opt_scaled, F, inliers);
 
-    if (stats.num_inliers > 7) {
+    if (stats.num_inliers > 6) {
         // Collect inlier for additional bundle adjustment
         // TODO: use camera models for this refinement!
         std::vector<Point2D> x1_inliers;
