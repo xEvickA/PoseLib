@@ -94,10 +94,10 @@ class RelativePlanarPoseEstimator {
     std::vector<size_t> sample;
 };
 
-class RelativePlanarPoseEstimator6pt {
+class PlanarFundamentalEstimator6pt {
   public:
-    RelativePlanarPoseEstimator6pt(const RansacOptions &ransac_opt, const std::vector<Point2D> &points2D_1,
-                                const std::vector<Point2D> &points2D_2)
+    PlanarFundamentalEstimator6pt(const RansacOptions &ransac_opt, const std::vector<Point2D> &points2D_1,
+                                const std::vector<Point2D> &points2D_2, bool refine)
         : num_data(points2D_1.size()), opt(ransac_opt), x1(points2D_1), x2(points2D_2),
           sampler(num_data, sample_sz, opt.seed, opt.progressive_sampling, opt.max_prosac_iterations) {
         x1s.resize(sample_sz);
@@ -116,6 +116,7 @@ class RelativePlanarPoseEstimator6pt {
     const RansacOptions &opt;
     const std::vector<Point2D> &x1;
     const std::vector<Point2D> &x2;
+    bool refine;
 
     RandomSampler sampler;
     // pre-allocated vectors for sampling
@@ -194,7 +195,7 @@ class GeneralizedRelativePoseEstimator {
 class FundamentalEstimator {
   public:
     FundamentalEstimator(const RansacOptions &ransac_opt, const std::vector<Point2D> &points2D_1,
-                         const std::vector<Point2D> &points2D_2)
+                         const std::vector<Point2D> &points2D_2, bool refine)
         : num_data(points2D_1.size()), opt(ransac_opt), x1(points2D_1), x2(points2D_2),
           sampler(num_data, sample_sz, opt.seed, opt.progressive_sampling, opt.max_prosac_iterations) {
         x1s.resize(sample_sz);
@@ -213,6 +214,7 @@ class FundamentalEstimator {
     const RansacOptions &opt;
     const std::vector<Point2D> &x1;
     const std::vector<Point2D> &x2;
+    bool refine;
 
     RandomSampler sampler;
     // pre-allocated vectors for sampling

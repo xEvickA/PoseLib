@@ -116,7 +116,7 @@ void RelativePlanarPoseEstimator::refine_model(CameraPose *pose) const {
     refine_relpose(x1_inlier, x2_inlier, pose, bundle_opt);
 }
 
-void RelativePlanarPoseEstimator6pt::generate_models(std::vector<Eigen::Matrix3d> *models) {
+void PlanarFundamentalEstimator6pt::generate_models(std::vector<Eigen::Matrix3d> *models) {
     sampler.generate_sample(&sample);
     for (size_t k = 0; k < sample_sz; ++k) {
         x1s[k] = x1[sample[k]].homogeneous().normalized();
@@ -125,17 +125,18 @@ void RelativePlanarPoseEstimator6pt::generate_models(std::vector<Eigen::Matrix3d
     relpose_6pt_planar(x1s, x2s, models);
 }
 
-double RelativePlanarPoseEstimator6pt::score_model(const Eigen::Matrix3d &F, size_t *inlier_count) const {
+double PlanarFundamentalEstimator6pt::score_model(const Eigen::Matrix3d &F, size_t *inlier_count) const {
     return compute_sampson_msac_score(F, x1, x2, opt.max_epipolar_error * opt.max_epipolar_error, inlier_count);
 }
 
-void RelativePlanarPoseEstimator6pt::refine_model(Eigen::Matrix3d *F) const {
+void PlanarFundamentalEstimator6pt::refine_model(Eigen::Matrix3d *F) const {
     BundleOptions bundle_opt;
     bundle_opt.loss_type = BundleOptions::LossType::TRUNCATED;
     bundle_opt.loss_scale = opt.max_epipolar_error;
     bundle_opt.max_iterations = 25;
-
-    refine_relpose(x1, x2, F, bundle_opt);
+    if(this->refine){
+        refine_relpose(x1, x2, F, bundle_opt);
+    }
 }
 
 void RelativePlanarPoseBruteEstimator::generate_models(std::vector<CameraPose> *models) {
@@ -308,8 +309,9 @@ void FundamentalEstimator::refine_model(Eigen::Matrix3d *F) const {
     bundle_opt.loss_type = BundleOptions::LossType::TRUNCATED;
     bundle_opt.loss_scale = opt.max_epipolar_error;
     bundle_opt.max_iterations = 25;
-
-    refine_fundamental(x1, x2, F, bundle_opt);
+    if(this->refine){
+        refine_fundamental(x1, x2, F, bundle_opt);
+    }
 }
 
 } // namespace poselib

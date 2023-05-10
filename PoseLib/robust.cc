@@ -274,9 +274,9 @@ RansacStats estimate_relative_planar_pose(const std::vector<Point2D> &points2D_1
     return stats;
 }
 
-RansacStats estimate_relative_planar_pose_6pt(const std::vector<Point2D> &points2D_1, const std::vector<Point2D> &points2D_2,
+RansacStats estimate_planar_fundamental_6pt(const std::vector<Point2D> &points2D_1, const std::vector<Point2D> &points2D_2,
                                           const RansacOptions &ransac_opt, const BundleOptions &bundle_opt, Eigen::Matrix3d *F, 
-                                          std::vector<char> *inliers) {
+                                          std::vector<char> *inliers, bool refine) {
 
     const size_t num_pts = points2D_1.size();
 
@@ -290,19 +290,7 @@ RansacStats estimate_relative_planar_pose_6pt(const std::vector<Point2D> &points
     BundleOptions bundle_opt_scaled = bundle_opt;
     bundle_opt_scaled.loss_scale /= scale;
 
-
-    // std::vector<Point2D> x1_calib(num_pts);
-    // std::vector<Point2D> x2_calib(num_pts);
-    // for (size_t k = 0; k < num_pts; ++k) {
-    //     camera1.unproject(points2D_1[k], &x1_calib[k]);
-    //     camera2.unproject(points2D_2[k], &x2_calib[k]);
-    // }
-
-    // RansacOptions ransac_opt_scaled = ransac_opt;
-    // ransac_opt_scaled.max_epipolar_error =
-    //     ransac_opt.max_epipolar_error * 0.5 * (1.0 / camera1.focal() + 1.0 / camera2.focal());
-
-    RansacStats stats = ransac_relplanarpose6pt(x1_norm, x2_norm, ransac_opt_scaled, F, inliers);
+    RansacStats stats = ransac_planar_fundamental_6pt(x1_norm, x2_norm, ransac_opt_scaled, F, inliers, refine);
 
     if (stats.num_inliers > 6) {
         // Collect inlier for additional bundle adjustment
@@ -318,11 +306,9 @@ RansacStats estimate_relative_planar_pose_6pt(const std::vector<Point2D> &points
             x1_inliers.push_back(x1_norm[k]);
             x2_inliers.push_back(x2_norm[k]);
         }
-
-        // BundleOptions scaled_bundle_opt = bundle_opt;
-        // scaled_bundle_opt.loss_scale = bundle_opt.loss_scale * 0.5 * (1.0 / camera1.focal() + 1.0 / camera2.focal());
-
-        refine_fundamental(x1_inliers, x2_inliers, F, bundle_opt_scaled);
+        if(refine){
+            refine_fundamental(x1_inliers, x2_inliers, F, bundle_opt_scaled);
+        }
     }
 
     *F = T2.transpose() * (*F) * T1;
@@ -377,7 +363,7 @@ RansacStats estimate_relative_planar_pose_brute(const std::vector<Point2D> &poin
 
 RansacStats estimate_fundamental(const std::vector<Point2D> &x1, const std::vector<Point2D> &x2,
                                  const RansacOptions &ransac_opt, const BundleOptions &bundle_opt, Eigen::Matrix3d *F,
-                                 std::vector<char> *inliers) {
+                                 std::vector<char> *inliers, bool refine) {
 
     const size_t num_pts = x1.size();
     if (num_pts < 7) {
@@ -397,7 +383,7 @@ RansacStats estimate_fundamental(const std::vector<Point2D> &x1, const std::vect
     BundleOptions bundle_opt_scaled = bundle_opt;
     bundle_opt_scaled.loss_scale /= scale;
 
-    RansacStats stats = ransac_fundamental(x1_norm, x2_norm, ransac_opt_scaled, F, inliers);
+    RansacStats stats = ransac_fundamental(x1_norm, x2_norm, ransac_opt_scaled, F, inliers, refine);
 
     if (stats.num_inliers > 7) {
         // Collect inlier for additional non-linear refinement
@@ -412,8 +398,9 @@ RansacStats estimate_fundamental(const std::vector<Point2D> &x1, const std::vect
             x1_inliers.push_back(x1_norm[k]);
             x2_inliers.push_back(x2_norm[k]);
         }
-
-        refine_fundamental(x1_inliers, x2_inliers, F, bundle_opt_scaled);
+        if(refine){
+            refine_fundamental(x1_inliers, x2_inliers, F, bundle_opt_scaled);
+        }
     }
 
     *F = T2.transpose() * (*F) * T1;

@@ -113,13 +113,13 @@ RansacStats ransac_relplanarpose(const std::vector<Point2D> &x1, const std::vect
     return stats;
 }
 
-RansacStats ransac_relplanarpose6pt(const std::vector<Point2D> &x1, const std::vector<Point2D> &x2, const RansacOptions &opt,
-                                  Eigen::Matrix3d *best_model, std::vector<char> *best_inliers) {
+RansacStats ransac_planar_fundamental_6pt(const std::vector<Point2D> &x1, const std::vector<Point2D> &x2, const RansacOptions &opt,
+                                  Eigen::Matrix3d *best_model, std::vector<char> *best_inliers, bool refine) {
     best_model->setIdentity();
     // best_model->q << 1.0, 0.0, 0.0, 0.0;
     // best_model->t.setZero();
-    RelativePlanarPoseEstimator6pt estimator(opt, x1, x2);
-    RansacStats stats = ransac<RelativePlanarPoseEstimator6pt>(estimator, opt, best_model);
+    PlanarFundamentalEstimator6pt estimator(opt, x1, x2, refine);
+    RansacStats stats = ransac<PlanarFundamentalEstimator6pt>(estimator, opt, best_model);
 
     get_inliers(*best_model, x1, x2, opt.max_epipolar_error * opt.max_epipolar_error, best_inliers);
 
@@ -139,11 +139,11 @@ RansacStats ransac_relplanarposebrute(const std::vector<Point2D> &x1, const std:
 }
 
 RansacStats ransac_fundamental(const std::vector<Point2D> &x1, const std::vector<Point2D> &x2, const RansacOptions &opt,
-                               Eigen::Matrix3d *best_model, std::vector<char> *best_inliers) {
+                               Eigen::Matrix3d *best_model, std::vector<char> *best_inliers, bool refine) {
 
     best_model->setIdentity();
 
-    FundamentalEstimator estimator(opt, x1, x2);
+    FundamentalEstimator estimator(opt, x1, x2, refine);
     RansacStats stats = ransac<FundamentalEstimator, Eigen::Matrix3d>(estimator, opt, best_model);
 
     get_inliers(*best_model, x1, x2, opt.max_epipolar_error * opt.max_epipolar_error, best_inliers);
